@@ -426,18 +426,24 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
       <section className={`mb-10 p-10 rounded-[3rem] border-4 ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-black shadow-xl'}`}>
          <h3 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter mb-8"><PencilLine /> PHASE A: PREP</h3>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div>
-               <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Initial Intention Record</h4>
-               <p className="text-sm font-bold leading-relaxed italic">"{session.phaseA.intentionsText || "No intention specified."}"</p>
-               <div className="mt-6">
-                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Initial Dose</h4>
+            <div className="space-y-6">
+               <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3 text-blue-600">Initial Intention Record</h4>
+                  <p className="text-sm font-bold leading-relaxed italic">"{session.phaseA.intentionsText || "No intention specified."}"</p>
+               </div>
+               <div>
+                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 text-blue-600">Initial Dose</h4>
                  <p className="font-mono text-sm font-black">{session.phaseA.dosage} Units</p>
                </div>
             </div>
             <div>
-               <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Initial Classification Tags</h4>
+               <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3 text-blue-600">Initial Classification Tags</h4>
                <div className="flex flex-wrap gap-2">
-                  {session.tags?.map(t => <span key={t} className="px-3 py-1 bg-blue-500/10 text-blue-600 rounded-lg text-[10px] font-black uppercase">{t}</span>)}
+                  {(session.tags || []).length > 0 ? (
+                    session.tags?.map(t => <span key={t} className="px-3 py-1 bg-blue-500/10 text-blue-600 rounded-lg text-[10px] font-black uppercase">{t}</span>)
+                  ) : (
+                    <span className="opacity-20 text-[10px] font-black uppercase">None</span>
+                  )}
                </div>
             </div>
          </div>
@@ -480,22 +486,22 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
         {/* Phase C: Outcomes Section */}
         <section className={`p-10 rounded-[3rem] border-4 ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-black shadow-xl'}`}>
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter"><Activity /> Phase C: Outcomes</h3>
+            <h3 className="text-2xl font-black flex items-center gap-2 uppercase tracking-tighter"><Activity /> PHASE C: OUTCOMES</h3>
           </div>
 
           {session.isCompleted && (
-             <div className="mb-10 p-6 bg-blue-50 dark:bg-zinc-800/50 rounded-2xl border border-blue-100 dark:border-white/5 space-y-4">
+             <div className="mb-10 p-8 bg-blue-50 dark:bg-zinc-800/50 rounded-3xl border border-blue-100 dark:border-white/5 space-y-6">
                 <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Retrospective Experience</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-blue-600">Experiential Debrief</h4>
                   <p className="text-sm font-medium leading-relaxed italic opacity-80">"{session.debriefText || "No retrospective data captured."}"</p>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Eventual Dose</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 text-blue-600">Eventual Dose</h4>
                     <p className="font-mono text-sm font-black">{session.phaseA.dosage} Units</p>
                   </div>
                   <div className="text-right">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Final Post-Flight Tags</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 text-blue-600">Post-Flight Tags</h4>
                     <div className="flex flex-wrap gap-2 justify-end">
                       {session.tags?.map(t => <span key={t} className="px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-black uppercase tracking-widest">{t}</span>)}
                     </div>

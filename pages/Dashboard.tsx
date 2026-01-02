@@ -5,9 +5,9 @@ import { ASSETS } from '../constants';
 import { getAIInsights } from '../services/geminiService';
 import { 
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Cell, ZAxis
+  BarChart, Bar, Cell, ZAxis, Legend
 } from 'recharts';
-import { Activity, Zap, RefreshCw, Target, Map, PlusCircle, Sparkles, Loader2, Brain, ExternalLink } from 'lucide-react';
+import { Activity, Zap, RefreshCw, Target, Map, PlusCircle, Sparkles, Loader2, Brain, ExternalLink, Heart } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { activeProfile, darkMode } = useStore();
@@ -38,6 +38,19 @@ export const Dashboard: React.FC = () => {
       const wellBeing = s.phaseC.oneDay?.wellBeing || s.phaseC.oneHour?.wellBeing || 5;
       return {
         dosage: s.phaseA.dosage,
+        outcomeScore: wellBeing,
+        substance: s.phaseA.substance,
+        id: s.id.slice(0, 4)
+      };
+    });
+  }, [sessions]);
+
+  // FEATURE: Self-Esteem vs. Well-Being Correlation
+  const selfEsteemOutcomeData = useMemo(() => {
+    return sessions.map(s => {
+      const wellBeing = s.phaseC.oneDay?.wellBeing || s.phaseC.oneHour?.wellBeing || 5;
+      return {
+        selfEsteem: s.phaseA.selfEsteem || 5,
         outcomeScore: wellBeing,
         substance: s.phaseA.substance,
         id: s.id.slice(0, 4)
@@ -84,10 +97,9 @@ export const Dashboard: React.FC = () => {
                 <div className="text-[10px] font-bold opacity-40 uppercase tracking-widest">from New Psychonaut</div>
               </div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tighter">Welcome to the Flight Recorder.</h1>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight tracking-tighter">Ride on Time</h1>
             <p className="text-xl opacity-60 mb-10 leading-relaxed font-medium">
-              You are entering the New Psychonaut quantified self platform. 
-              Track your N-of-1 experiments with clinical precision, identifying your personal "sweet spot".
+              Track your experiments with Black Box, the psychedelic quantified self platform for n=1 and groups of subjects.
             </p>
             <button 
               onClick={() => window.location.hash = '#new-session'}
@@ -199,22 +211,6 @@ export const Dashboard: React.FC = () => {
         <Sparkles size={120} className="absolute -bottom-10 -right-10 opacity-[0.05] text-blue-600 pointer-events-none group-hover:scale-110 transition-transform" />
       </section>
 
-      {/* NeuroPhenomAI Loading Pop-up (Dashboard) */}
-      {loadingInsights && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 animate-fadeIn">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative max-w-sm w-full bg-white dark:bg-black border-[6px] border-blue-600 rounded-[3rem] shadow-[0_40px_100px_rgba(37,99,235,0.4)] p-8 text-center animate-slideUp">
-            <a href="https://neurophenom-ai-572556903588.us-west1.run.app/" target="_blank" rel="noopener noreferrer" className="block group">
-              <img src={ASSETS.BANNER_NEURO} className="w-full h-auto mb-6 rounded-2xl transform transition-transform group-hover:scale-105" alt="NeuroPhenomAI" />
-              <div className="flex flex-col items-center justify-center gap-2 text-blue-600 font-black uppercase tracking-widest text-[11px] group-hover:text-blue-500">
-                <span>Click for granular interview</span>
-                <ExternalLink size={14} />
-              </div>
-            </a>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
           <div className="flex items-center gap-2 mb-8">
@@ -237,6 +233,36 @@ export const Dashboard: React.FC = () => {
                     key={sub} 
                     name={sub} 
                     data={doseOutcomeData.filter(d => d.substance === sub)} 
+                    fill={`hsl(${i * 60}, 70%, 50%)`} 
+                  />
+                ))}
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* NEW: Self-Esteem vs Well-Being Scatter Plot */}
+        <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+          <div className="flex items-center gap-2 mb-8">
+            <Heart className="text-red-500" size={24} />
+            <h4 className="text-xl font-bold uppercase tracking-tight">Self-Esteem vs. Well-Being</h4>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                <XAxis type="number" dataKey="selfEsteem" name="Self-Esteem" domain={[1, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Self-Esteem', position: 'insideBottomRight', offset: -10, fontSize: 10 }} />
+                <YAxis type="number" dataKey="outcomeScore" name="Well-Being Outcome" domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Outcome', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <ZAxis type="number" range={[100, 100]} />
+                <Tooltip 
+                  cursor={{ strokeDasharray: '3 3' }}
+                  contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }}
+                />
+                {distinctSubstances.map((sub, i) => (
+                  <Scatter 
+                    key={sub} 
+                    name={sub} 
+                    data={selfEsteemOutcomeData.filter(d => d.substance === sub)} 
                     fill={`hsl(${i * 60}, 70%, 50%)`} 
                   />
                 ))}

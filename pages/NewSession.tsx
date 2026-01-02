@@ -13,7 +13,6 @@ export const NewSession: React.FC = () => {
   const [newTag, setNewTag] = useState('');
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [forecast, setForecast] = useState<any>(null);
-  const [showAIPopup, setShowAIPopup] = useState(false);
   
   const [phaseA, setPhaseA] = useState({
     substance: Substance.LSD,
@@ -51,12 +50,6 @@ export const NewSession: React.FC = () => {
     });
     setForecast(result);
     setLoadingForecast(false);
-    
-    // Trigger pop-up for 5 seconds after analysis appears
-    setShowAIPopup(true);
-    setTimeout(() => {
-      setShowAIPopup(false);
-    }, 5000);
   };
 
   const handleSubmit = () => {
@@ -422,22 +415,6 @@ export const NewSession: React.FC = () => {
            <img src={ASSETS.LOGO_OUROBOROS} className="w-96 h-96 rotate-12" alt="" />
         </div>
       </div>
-
-      {/* NeuroPhenomAI Pop-up (After analysis appears) */}
-      {showAIPopup && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 animate-fadeIn">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative max-w-sm w-full bg-white dark:bg-black border-[6px] border-blue-600 rounded-[3rem] shadow-[0_40px_100px_rgba(37,99,235,0.4)] p-8 text-center animate-slideUp">
-            <a href="https://neurophenom-ai-572556903588.us-west1.run.app/" target="_blank" rel="noopener noreferrer" className="block group">
-              <img src={ASSETS.BANNER_NEURO} className="w-full h-auto mb-6 rounded-2xl transform transition-transform group-hover:scale-105" alt="NeuroPhenomAI" />
-              <div className="flex flex-col items-center justify-center gap-2 text-blue-600 font-black uppercase tracking-widest text-[11px] group-hover:text-blue-500">
-                <span>Click for granular interview</span>
-                <ExternalLink size={14} />
-              </div>
-            </a>
-          </div>
-        </div>
-      )}
 
       <div className="mt-8 flex justify-between items-center px-6">
         <button 
