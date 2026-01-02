@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants';
 import { 
   ChevronLeft, Clock, Save, Activity, FileText, ShieldCheck, Download,
-  Notebook, Zap, Eye, Brain, Mic, File, Edit, X, Trash, Thermometer, User, Compass
+  Notebook, Zap, Eye, Brain, Mic, File, Edit, X, Trash, Thermometer, User, Compass, AlertCircle
 } from 'lucide-react';
 import { LogEntryType, Substance, SocialEnvironment, PhysicalEnvironment } from '../types';
 
@@ -48,10 +48,11 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
     alert("Integration notes updated.");
   };
 
+  const isValueValid = (val: number) => val >= 1 && val <= 10;
+
   const handleSavePhaseC = () => {
-    const isValid = (val: number) => val >= 1 && val <= 10;
-    if (!isValid(phaseCInputs.mood) || !isValid(phaseCInputs.attention) || !isValid(phaseCInputs.wellBeing) || !isValid(phaseCInputs.energy)) {
-      alert("Please ensure all metrics are between 1 and 10.");
+    if (!isValueValid(phaseCInputs.mood) || !isValueValid(phaseCInputs.attention) || !isValueValid(phaseCInputs.wellBeing) || !isValueValid(phaseCInputs.energy)) {
+      alert("Invalid input detected. Please ensure all metrics are between 1 and 10.");
       return;
     }
 
@@ -90,20 +91,42 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
     document.body.removeChild(link);
   };
 
-  const InputRange = ({ label, value, onChange }: any) => (
-      <div className="mb-4">
-        <div className="flex justify-between text-[10px] font-black mb-1 uppercase tracking-widest">
-          <label className="opacity-40">{label}</label>
-          <span className="opacity-60 text-blue-500 font-bold">{value}</span>
+  const InputWithValidation = ({ label, value, onChange }: any) => {
+    const invalid = !isValueValid(value);
+    return (
+      <div className="mb-6">
+        <div className="flex justify-between text-[10px] font-black mb-2 uppercase tracking-widest">
+          <label className={invalid ? 'text-red-500' : 'opacity-40'}>{label}</label>
+          <span className={invalid ? 'text-red-500 font-black' : 'opacity-60 text-blue-500 font-bold'}>{value}</span>
         </div>
-        <input 
-          type="range" min="1" max="10" 
-          value={value} 
-          onChange={(e) => onChange(parseInt(e.target.value))}
-          className="w-full h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500 transition-all hover:h-2"
-        />
+        <div className="flex gap-4 items-center">
+          <input 
+            type="range" min="1" max="10" 
+            value={isValueValid(value) ? value : 5} 
+            onChange={(e) => onChange(parseInt(e.target.value))}
+            className="flex-1 h-1.5 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500 transition-all"
+          />
+          <input 
+            type="number"
+            min="1"
+            max="10"
+            value={value}
+            onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+            className={`w-14 p-2 rounded-lg border-2 text-center font-mono text-sm font-bold outline-none transition-all ${
+              invalid 
+                ? 'border-red-500 bg-red-500/10 text-red-500 animate-pulse' 
+                : (darkMode ? 'bg-black border-zinc-800 focus:border-blue-500' : 'bg-white border-gray-100 focus:border-black')
+            }`}
+          />
+        </div>
+        {invalid && (
+          <p className="text-[9px] text-red-500 mt-1 font-bold flex items-center gap-1 uppercase tracking-tighter">
+            <AlertCircle size={10} /> Value must be between 1 and 10
+          </p>
+        )}
       </div>
-  );
+    );
+  };
 
   const getLogIcon = (type: LogEntryType) => {
     switch (type) {
@@ -147,7 +170,7 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
             <div className="p-8"><h3 className="text-[11px] font-black uppercase tracking-widest mb-6 opacity-40">03. Environment</h3><div className="text-[12px] font-black uppercase tracking-tight">{session.phaseA.physical}<br/>{session.phaseA.social}</div></div>
             <div className="p-8 bg-zinc-50 dark:bg-zinc-900">
               <h3 className="text-[11px] font-black uppercase tracking-widest mb-6 opacity-40">04. Integration Status</h3>
-              <p className="text-[10px] leading-relaxed font-bold uppercase tracking-widest text-blue-500">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500">
                 {session.notes ? "DATA RICH" : "PENDING NOTES"}
               </p>
             </div>
@@ -248,30 +271,6 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
                       value={editPhaseA?.dosage}
                       onChange={e => setEditPhaseA({...editPhaseA!, dosage: parseFloat(e.target.value)})}
                     />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase opacity-40">Social Setting</label>
-                    <select 
-                      className={`w-full p-4 rounded-xl border-2 font-bold ${darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50'}`}
-                      value={editPhaseA?.social}
-                      onChange={e => setEditPhaseA({...editPhaseA!, social: e.target.value as SocialEnvironment})}
-                    >
-                      <option value={SocialEnvironment.ALONE}>Alone</option>
-                      <option value={SocialEnvironment.NOT_ALONE}>Not Alone</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase opacity-40">Physical Coordinates</label>
-                    <select 
-                      className={`w-full p-4 rounded-xl border-2 font-bold ${darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50'}`}
-                      value={editPhaseA?.physical}
-                      onChange={e => setEditPhaseA({...editPhaseA!, physical: e.target.value as PhysicalEnvironment})}
-                    >
-                      <option value={PhysicalEnvironment.FAMILIAR}>Familiar Environment</option>
-                      <option value={PhysicalEnvironment.NEW}>New Environment</option>
-                    </select>
                   </div>
                 </div>
               </div>
@@ -383,9 +382,13 @@ export const SessionDetail: React.FC<{ sessionId: string, onBack: () => void }> 
                 ))}
               </div>
               <div className="space-y-6">
-                <InputRange label="Mood Delta" value={phaseCInputs.mood} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, mood: v})} />
-                <InputRange label="Well-Being" value={phaseCInputs.wellBeing} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, wellBeing: v})} />
-                <InputRange label="Cognitive Load" value={phaseCInputs.attention} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, attention: v})} />
+                <InputWithValidation label="Mood Delta" value={phaseCInputs.mood} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, mood: v})} />
+                <InputWithValidation label="Well-Being" value={phaseCInputs.wellBeing} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, wellBeing: v})} />
+                <InputWithValidation label="Cognitive Load" value={phaseCInputs.attention} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, attention: v})} />
+                <InputWithValidation label="System Energy" value={phaseCInputs.energy} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, energy: v})} />
+                {phaseCInterval === 'oneDay' && (
+                  <InputWithValidation label="Life Orientation" value={phaseCInputs.lifeOrientation} onChange={(v: number) => setPhaseCInputs({...phaseCInputs, lifeOrientation: v})} />
+                )}
               </div>
             </section>
 

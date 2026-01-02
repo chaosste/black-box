@@ -7,7 +7,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, Cell, ZAxis, Legend
 } from 'recharts';
-import { Activity, Zap, RefreshCw, Target, Map, PlusCircle, Sparkles, Loader2, Brain, ExternalLink, Heart } from 'lucide-react';
+import { Activity, Zap, RefreshCw, Target, Map, PlusCircle, Sparkles, Loader2, Brain, ExternalLink, Heart, Layers } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { activeProfile, darkMode } = useStore();
@@ -34,7 +34,6 @@ export const Dashboard: React.FC = () => {
   // FEATURE: Dose vs. Outcome 'Sweet Spot'
   const doseOutcomeData = useMemo(() => {
     return sessions.map(s => {
-      // Prioritize 1-day well-being as the primary outcome measure
       const wellBeing = s.phaseC.oneDay?.wellBeing || s.phaseC.oneHour?.wellBeing || 5;
       return {
         dosage: s.phaseA.dosage,
@@ -78,6 +77,27 @@ export const Dashboard: React.FC = () => {
     ];
   }, [sessions]);
 
+  // NEW FEATURE: Set vs Setting Correlation
+  const setVsSettingData = useMemo(() => {
+    const categories = [
+      { key: 'social', value: 'Alone', label: 'Alone' },
+      { key: 'social', value: 'Not Alone', label: 'Social' },
+      { key: 'physical', value: 'Familiar Environment', label: 'Familiar' },
+      { key: 'physical', value: 'New Environment', label: 'New' }
+    ];
+
+    return categories.map(cat => {
+      const filtered = sessions.filter(s => (s.phaseA as any)[cat.key] === cat.value);
+      const avgMood = filtered.length ? filtered.reduce((acc, s) => acc + s.phaseA.mood, 0) / filtered.length : 0;
+      const avgSelfEsteem = filtered.length ? filtered.reduce((acc, s) => acc + s.phaseA.selfEsteem, 0) / filtered.length : 0;
+      return {
+        name: cat.label,
+        Mood: parseFloat(avgMood.toFixed(1)),
+        'Self-Esteem': parseFloat(avgSelfEsteem.toFixed(1))
+      };
+    });
+  }, [sessions]);
+
   const osStatus = useMemo(() => {
     const latest = sessions[sessions.length - 1];
     const score = latest?.phaseC.oneDay?.lifeOrientation || 5;
@@ -112,30 +132,6 @@ export const Dashboard: React.FC = () => {
             <img src={sidebarIcon} alt="bg" className="w-full h-full object-contain scale-150 rotate-12" />
           </div>
         </section>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className={`p-8 rounded-[2.5rem] border border-dashed ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
-               <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                 <Zap className="text-blue-500" size={24} />
-               </div>
-               <h3 className="font-bold mb-2">Quantifiable Set</h3>
-               <p className="text-sm opacity-60 leading-relaxed">Record mood, stress, and self-esteem as weighted causal inputs.</p>
-            </div>
-            <div className={`p-8 rounded-[2.5rem] ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-100 shadow-xl'}`}>
-               <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                 <Map className="text-green-500" size={24} />
-               </div>
-               <h3 className="font-bold mb-2">Observed Setting</h3>
-               <p className="text-sm opacity-60 leading-relaxed">Analyze environment and social dynamics impact.</p>
-            </div>
-            <div className={`p-8 rounded-[2.5rem] border border-dashed ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
-               <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                 <Activity className="text-amber-500" size={24} />
-               </div>
-               <h3 className="font-bold mb-2">Temporal Outcomes</h3>
-               <p className="text-sm opacity-60 leading-relaxed">Measure trajectory at 1h, 24h, and 7d intervals.</p>
-            </div>
-        </div>
       </div>
     );
   }
@@ -212,59 +208,65 @@ export const Dashboard: React.FC = () => {
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* NEW: Set vs Setting Correlation Chart */}
+        <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+          <div className="flex items-center gap-2 mb-8">
+            <Layers className="text-purple-500" size={24} />
+            <h4 className="text-xl font-bold uppercase tracking-tight">Set vs. Setting Matrix</h4>
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={setVsSettingData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                <XAxis dataKey="name" stroke={darkMode ? '#444' : '#ccc'} fontSize={12} />
+                <YAxis domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} />
+                <Tooltip 
+                  contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }}
+                />
+                <Legend iconType="circle" />
+                <Bar dataKey="Mood" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Self-Esteem" fill="#ef4444" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
           <div className="flex items-center gap-2 mb-8">
             <Target className="text-blue-500" size={24} />
-            <h4 className="text-xl font-bold uppercase tracking-tight">Substance Sweet Spot Analysis</h4>
+            <h4 className="text-xl font-bold uppercase tracking-tight">Substance Sweet Spot</h4>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
-                <XAxis type="number" dataKey="dosage" name="Dosage (Units)" stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Dosage', position: 'insideBottomRight', offset: -10, fontSize: 10 }} />
-                <YAxis type="number" dataKey="outcomeScore" name="Well-Being Outcome" domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Outcome', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <XAxis type="number" dataKey="dosage" name="Dosage" stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Dosage', position: 'insideBottomRight', offset: -10, fontSize: 10 }} />
+                <YAxis type="number" dataKey="outcomeScore" name="Outcome" domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Well-Being', angle: -90, position: 'insideLeft', fontSize: 10 }} />
                 <ZAxis type="number" range={[100, 100]} />
-                <Tooltip 
-                  cursor={{ strokeDasharray: '3 3' }}
-                  contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }}
-                />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }} />
                 {distinctSubstances.map((sub, i) => (
-                  <Scatter 
-                    key={sub} 
-                    name={sub} 
-                    data={doseOutcomeData.filter(d => d.substance === sub)} 
-                    fill={`hsl(${i * 60}, 70%, 50%)`} 
-                  />
+                  <Scatter key={sub} name={sub} data={doseOutcomeData.filter(d => d.substance === sub)} fill={`hsl(${i * 60}, 70%, 50%)`} />
                 ))}
               </ScatterChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* NEW: Self-Esteem vs Well-Being Scatter Plot */}
         <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
           <div className="flex items-center gap-2 mb-8">
             <Heart className="text-red-500" size={24} />
-            <h4 className="text-xl font-bold uppercase tracking-tight">Self-Esteem vs. Well-Being</h4>
+            <h4 className="text-xl font-bold uppercase tracking-tight">Self-Esteem Correlation</h4>
           </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
-                <XAxis type="number" dataKey="selfEsteem" name="Self-Esteem" domain={[1, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Self-Esteem', position: 'insideBottomRight', offset: -10, fontSize: 10 }} />
-                <YAxis type="number" dataKey="outcomeScore" name="Well-Being Outcome" domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} label={{ value: 'Outcome', angle: -90, position: 'insideLeft', fontSize: 10 }} />
+                <XAxis type="number" dataKey="selfEsteem" name="Self-Esteem" domain={[1, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} />
+                <YAxis type="number" dataKey="outcomeScore" name="Outcome" domain={[0, 10]} stroke={darkMode ? '#444' : '#ccc'} fontSize={12} />
                 <ZAxis type="number" range={[100, 100]} />
-                <Tooltip 
-                  cursor={{ strokeDasharray: '3 3' }}
-                  contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }}
-                />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={darkMode ? { backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '12px' } : { borderRadius: '12px' }} />
                 {distinctSubstances.map((sub, i) => (
-                  <Scatter 
-                    key={sub} 
-                    name={sub} 
-                    data={selfEsteemOutcomeData.filter(d => d.substance === sub)} 
-                    fill={`hsl(${i * 60}, 70%, 50%)`} 
-                  />
+                  <Scatter key={sub} name={sub} data={selfEsteemOutcomeData.filter(d => d.substance === sub)} fill={`hsl(${i * 60}, 70%, 50%)`} />
                 ))}
               </ScatterChart>
             </ResponsiveContainer>

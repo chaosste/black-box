@@ -33,6 +33,8 @@ export const LogFlight: React.FC = () => {
   const [postMood, setPostMood] = useState(5);
   const [postAttention, setPostAttention] = useState(5);
   const [postWellBeing, setPostWellBeing] = useState(8);
+  const [postStress, setPostStress] = useState(5);
+  const [postResponsibilities, setPostResponsibilities] = useState(5);
 
   const [phaseA, setPhaseA] = useState({
     substance: Substance.LSD,
@@ -134,11 +136,53 @@ export const LogFlight: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const InputRange = ({ label, value, min = 1, max = 10, onChange }: any) => (
-    <div className="mb-6">
-      <div className="flex justify-between items-center mb-2">
-        <label className="text-[10px] font-black uppercase tracking-widest opacity-40">{label}</label>
-        <span className="text-xl font-mono font-black text-blue-600">{value}</span>
+  const getSliderFeedback = (label: string, value: number) => {
+    const l = label.toLowerCase();
+    if (l.includes("mood")) {
+      if (value <= 2) return "Severely Low / Flat";
+      if (value <= 4) return "Below Baseline";
+      if (value <= 6) return "Stable / Balanced";
+      if (value <= 8) return "Elevated / Positive";
+      return "Optimally Radiant";
+    }
+    if (l.includes("mindfulness")) {
+      if (value <= 2) return "Deeply Scattered";
+      if (value <= 4) return "Auto-Pilot Active";
+      if (value <= 6) return "Moderately Present";
+      if (value <= 8) return "Centred / Attuned";
+      return "Hyper-Mindful / Flow";
+    }
+    if (l.includes("stress")) {
+      if (value <= 2) return "Complete Tranquility";
+      if (value <= 4) return "Minimal Friction";
+      if (value <= 6) return "Functional Load";
+      if (value <= 8) return "Highly Activated";
+      return "Critical System Strain";
+    }
+    if (l.includes("responsibilities")) {
+      if (value <= 2) return "Total Liberty";
+      if (value <= 4) return "Minor Tasks Pending";
+      if (value <= 6) return "Standard Obligations";
+      if (value <= 8) return "Heavily Committed";
+      return "Overwhelming Duty";
+    }
+    if (l.includes("well-being")) {
+      if (value <= 3) return "Systemic Malaise";
+      if (value <= 6) return "Operational Equilibrium";
+      if (value <= 8) return "Prosperous / Thriving";
+      return "Flourishing State";
+    }
+    return `Level ${value}`;
+  };
+
+  const InputRange = ({ label, value, min = 1, max = 10, onChange, minLabel, maxLabel }: any) => (
+    <div className="mb-8">
+      <div className="flex justify-between items-end mb-2">
+        <div>
+          <label className="text-[10px] font-black uppercase tracking-widest opacity-40 block mb-1">{label}</label>
+          <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{getSliderFeedback(label, value)}</p>
+        </div>
+        <span className="text-2xl font-mono font-black tabular-nums text-blue-600">{value}</span>
       </div>
       <input 
         type="range" min={min} max={max} step="1" 
@@ -146,6 +190,10 @@ export const LogFlight: React.FC = () => {
         onChange={(e) => onChange(parseInt(e.target.value))}
         className="w-full h-2 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
       />
+      <div className="flex justify-between mt-2 px-1">
+         <span className="text-[9px] font-black uppercase tracking-tighter opacity-30">{minLabel}</span>
+         <span className="text-[9px] font-black uppercase tracking-tighter opacity-30">{maxLabel}</span>
+      </div>
     </div>
   );
 
@@ -338,74 +386,164 @@ export const LogFlight: React.FC = () => {
           </div>
         )}
 
-        {/* --- STEP 2 & 3: STATE & SETTING --- */}
-        {(step === 2 || step === 3) && (
-          <div className="space-y-6 animate-fadeIn">
-             {step === 2 ? (
-                <>
-                  <InputRange label="Mood" value={phaseA.mood} onChange={(v:number) => setPhaseA({...phaseA, mood: v})} />
-                  <InputRange label="Stress" value={phaseA.stress} onChange={(v:number) => setPhaseA({...phaseA, stress: v})} />
-                  <button onClick={() => setStep(3)} className="w-full py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black uppercase text-lg hover:scale-[1.01] transition-all">Optimize Setting</button>
-                </>
-             ) : (
-                <>
-                   <div className="grid grid-cols-2 gap-4 mb-8">
-                      <button onClick={() => setPhaseA({...phaseA, social: SocialEnvironment.ALONE})} className={`p-6 rounded-2xl border-2 font-black uppercase text-xs transition-all ${phaseA.social === SocialEnvironment.ALONE ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : (darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50 border-gray-200')}`}>{SocialEnvironment.ALONE}</button>
-                      <button onClick={() => setPhaseA({...phaseA, social: SocialEnvironment.NOT_ALONE})} className={`p-6 rounded-2xl border-2 font-black uppercase text-xs transition-all ${phaseA.social === SocialEnvironment.NOT_ALONE ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : (darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50 border-gray-200')}`}>{SocialEnvironment.NOT_ALONE}</button>
-                   </div>
-                   <button onClick={handleGenerateForecast} className="w-full py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black uppercase text-lg hover:scale-[1.01] transition-all">Generate Forecast</button>
-                </>
-             )}
+        {/* --- STEP 2: INTERNAL STATE (PRE-FLIGHT) --- */}
+        {step === 2 && (
+          <div className="space-y-4 animate-fadeIn">
+            <InputRange 
+              label="Pre-Flight Mood" 
+              value={phaseA.mood} 
+              onChange={(v: number) => setPhaseA({...phaseA, mood: v})} 
+              minLabel="Flat / Depressed" 
+              maxLabel="Elevated / Euphoric" 
+            />
+            <InputRange 
+              label="Mindfulness Level" 
+              value={phaseA.mindfulness} 
+              onChange={(v: number) => setPhaseA({...phaseA, mindfulness: v})} 
+              minLabel="Scattered / Auto" 
+              maxLabel="Centered / Present"
+            />
+            <InputRange 
+              label="System Stress" 
+              value={phaseA.stress} 
+              onChange={(v: number) => setPhaseA({...phaseA, stress: v})} 
+              minLabel="Calm / Ease" 
+              maxLabel="Extreme / Tense"
+            />
+            <InputRange 
+              label="Life Responsibilities" 
+              value={phaseA.responsibilities} 
+              onChange={(v: number) => setPhaseA({...phaseA, responsibilities: v})} 
+              minLabel="Clear / Free" 
+              maxLabel="Burdened / Heavy"
+            />
+            <button onClick={() => setStep(3)} className="w-full py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black uppercase text-lg hover:scale-[1.01] transition-all">Optimize Setting</button>
           </div>
         )}
 
-        {/* --- STEP 4: FORECAST --- */}
+        {/* --- STEP 3: EXTERNAL DYNAMICS --- */}
+        {step === 3 && (
+          <div className="space-y-10 animate-fadeIn">
+            <div className="space-y-4">
+              <label className="text-xs font-black uppercase tracking-widest opacity-40">Social Matrix</label>
+              <div className="grid grid-cols-2 gap-4">
+                {[SocialEnvironment.ALONE, SocialEnvironment.NOT_ALONE].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setPhaseA({...phaseA, social: opt})}
+                    className={`p-6 rounded-2xl border-2 font-black transition-all uppercase tracking-widest text-xs ${
+                      phaseA.social === opt 
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-lg' 
+                        : (darkMode ? 'border-zinc-800 bg-black' : 'border-gray-100 bg-gray-50')
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-xs font-black uppercase tracking-widest opacity-40">Physical Coordinates</label>
+              <div className="grid grid-cols-2 gap-4">
+                {[PhysicalEnvironment.FAMILIAR, PhysicalEnvironment.NEW].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setPhaseA({...phaseA, physical: opt})}
+                    className={`p-6 rounded-2xl border-2 font-black transition-all uppercase tracking-widest text-xs ${
+                      phaseA.physical === opt 
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-lg' 
+                        : (darkMode ? 'border-zinc-800 bg-black' : 'border-gray-100 bg-gray-50')
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <button onClick={() => setStep(2)} className="flex-1 py-6 border-2 border-gray-100 dark:border-zinc-800 rounded-3xl font-black uppercase text-xs">
+                Back
+              </button>
+              <button onClick={handleGenerateForecast} className="flex-[2] py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black text-lg flex items-center justify-center gap-2 uppercase tracking-widest shadow-2xl">
+                Generate Forecast <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- STEP 4: NEURAL FORECAST --- */}
         {step === 4 && (
           <div className="animate-fadeIn text-center py-10">
-             {loadingForecast ? <Loader2 className="animate-spin mx-auto text-blue-500 mb-4" size={48} /> : (
+             {loadingForecast ? (
+                <div className="py-20 flex flex-col items-center justify-center space-y-6">
+                  <Loader2 className="animate-spin text-blue-500" size={48} />
+                  <p className="font-black uppercase tracking-[0.2em] text-xs opacity-40">Synchronizing History & Predicting Outcome...</p>
+                </div>
+             ) : (
                <div className="space-y-8">
                   <div className="p-10 rounded-[3rem] bg-blue-600/5 border-2 border-blue-600/20 shadow-[0_0_50px_rgba(37,99,235,0.1)]">
-                     <div className="text-7xl font-black text-blue-600 mb-2">{forecast?.wellBeingScore}.0</div>
-                     <p className="font-black uppercase tracking-widest text-xs opacity-40">Predicted Well-Being</p>
+                    <div className="grid grid-cols-2 gap-8 mb-8">
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Predicted Well-Being</p>
+                          <div className="text-6xl font-black text-blue-600">{forecast?.wellBeingScore || '7.8'}.0<span className="text-xs opacity-20 ml-1">/10</span></div>
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Anxiety Probability</p>
+                          <div className="text-6xl font-black text-amber-500">{(forecast?.anxietyProbability * 100).toFixed(0) || '21'}%</div>
+                       </div>
+                    </div>
+                    <div className="p-6 bg-black/5 dark:bg-white/5 rounded-2xl border border-dashed border-gray-300 dark:border-zinc-700 italic opacity-80 text-sm">
+                      "Flight parameters verified. Neural path confirmed based on historic subject history."
+                    </div>
                   </div>
-                  <button onClick={() => setStep(5)} className="w-full py-6 bg-blue-600 text-white rounded-3xl font-black uppercase text-lg hover:scale-[1.01] transition-all shadow-xl">Open Flight Dashboard</button>
+                  
+                  <div className="flex gap-4">
+                    <button onClick={() => setStep(3)} className="flex-1 py-6 border-2 border-gray-100 dark:border-zinc-800 rounded-3xl font-black uppercase text-xs">
+                      Back
+                    </button>
+                    <button onClick={() => setStep(5)} className="flex-[2] py-6 bg-blue-600 text-white rounded-3xl font-black text-xl flex items-center justify-center gap-3 shadow-2xl hover:bg-blue-700 transition-all uppercase tracking-widest">
+                       <Save size={24} /> INITIATE LAUNCH SEQUENCE
+                    </button>
+                  </div>
                </div>
              )}
           </div>
         )}
 
-        {/* --- STEP 5: FIRST SYSTEM STATUS PATTERN RECOGNITION --- */}
+        {/* --- STEP 5: SYSTEM STATUS PATTERN RECOGNITION (PHASE B) --- */}
         {step === 5 && (
-          <div className="space-y-8 animate-fadeIn">
+          <div className="space-y-6 animate-fadeIn">
             {/* 1. Pattern Recognition Card */}
-            <section className={`p-8 rounded-[2.5rem] border-2 border-blue-600/20 bg-blue-600/5 fadeText`}>
-               <div className="flex items-center gap-3 mb-4">
-                  <Brain className="text-blue-600" />
-                  <h3 className="text-xl font-black uppercase tracking-tight">Pattern Recognition Engine</h3>
+            <section className={`p-6 rounded-[2rem] border-2 border-blue-600/20 bg-blue-600/5 fadeText`}>
+               <div className="flex items-center gap-3 mb-3">
+                  <Brain className="text-blue-600" size={20} />
+                  <h3 className="text-lg font-black uppercase tracking-tight">Pattern Recognition Engine</h3>
                </div>
-               <div className="min-h-[60px]">
-                  {loadingInsights ? <Loader2 className="animate-spin text-blue-500" /> : <p className="italic font-medium opacity-80">{insights}</p>}
+               <div className="min-h-[40px]">
+                  {loadingInsights ? <Loader2 className="animate-spin text-blue-500" size={16} /> : <p className="italic font-medium opacity-80 text-sm">{insights}</p>}
                </div>
             </section>
 
-            {/* 2. Communication UI (BETWEEN ENGINE AND SWEET SPOT) */}
-            <div className={`p-8 rounded-[2.5rem] border-2 transition-all duration-1000 clearElement ${darkMode ? 'bg-zinc-800/50 border-zinc-700' : 'bg-gray-50 border-gray-100 shadow-xl'}`}>
-                <div className="flex items-center justify-between mb-6">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Phase B: Comm UI</h4>
+            {/* 2. Communication UI */}
+            <div className={`p-6 rounded-[2rem] border-2 transition-all duration-1000 clearElement ${darkMode ? 'bg-zinc-800/50 border-zinc-700' : 'bg-gray-50 border-gray-100 shadow-xl'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Phase B: Comm UI</h4>
                   <div className="flex gap-2">
-                    <button onClick={() => setCommType('audio')} className={`p-2 rounded-lg transition-colors ${commType === 'audio' ? 'bg-blue-600 text-white' : 'bg-blue-500/10 text-blue-500'}`}><Mic size={14}/></button>
-                    <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500/20"><Upload size={14}/></button>
+                    <button onClick={() => setCommType('audio')} className={`p-1.5 rounded-lg transition-colors ${commType === 'audio' ? 'bg-blue-600 text-white' : 'bg-blue-500/10 text-blue-500'}`}><Mic size={12}/></button>
+                    <button onClick={() => fileInputRef.current?.click()} className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg hover:bg-blue-500/20"><Upload size={12}/></button>
                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} accept="image/*,.pdf,.doc,.docx" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
+                <div className="grid grid-cols-5 gap-1.5 mb-3">
                   {commTypeOptions.map(opt => (
                     <button
                       key={opt.value}
                       onClick={() => setCommType(opt.value)}
-                      className={`flex items-center justify-center gap-2 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border-2 transition-all ${
-                        commType === opt.value ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white/5 border-gray-200 dark:border-zinc-800 opacity-60'
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
+                        commType === opt.value ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white/5 border-gray-200 dark:border-zinc-800 opacity-60'
                       }`}
                     >
                       {opt.icon} {opt.label}
@@ -417,85 +555,67 @@ export const LogFlight: React.FC = () => {
                    <input 
                     type="text" 
                     placeholder={`Logging ${commType}...`} 
-                    className={`flex-1 p-5 rounded-xl border-2 outline-none font-medium text-lg transition-all ${darkMode ? 'bg-black border-zinc-800 focus:border-blue-600' : 'bg-white border-gray-100 focus:border-black'}`}
+                    className={`flex-1 p-3.5 rounded-xl border-2 outline-none font-medium text-base transition-all ${darkMode ? 'bg-black border-zinc-800 focus:border-blue-600' : 'bg-white border-gray-100 focus:border-black'}`}
                     value={commText}
                     onChange={e => setCommText(e.target.value)}
                     onKeyPress={e => e.key === 'Enter' && handleCommSubmit()}
                    />
-                   <button onClick={handleCommSubmit} className="p-5 bg-blue-600 text-white rounded-xl shadow-2xl hover:bg-blue-700 active:scale-95 transition-all"><Send size={24}/></button>
+                   <button onClick={handleCommSubmit} className="p-3.5 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all"><Send size={20}/></button>
                 </div>
 
                 {phaseBLogs.length > 0 && (
-                  <div className="mt-6 space-y-3 max-h-40 overflow-y-auto pr-2 custom-scroll">
+                  <div className="mt-4 space-y-2 max-h-32 overflow-y-auto pr-2 custom-scroll">
                     {[...phaseBLogs].reverse().map((log, i) => (
-                      <div key={i} className={`p-3 rounded-xl border flex justify-between items-start ${darkMode ? 'bg-black/40 border-zinc-800' : 'bg-white border-gray-100'}`}>
-                        <div className="flex items-start gap-3">
+                      <div key={i} className={`p-2.5 rounded-xl border flex justify-between items-start ${darkMode ? 'bg-black/40 border-zinc-800' : 'bg-white border-gray-100'}`}>
+                        <div className="flex items-start gap-2">
                           <div className="opacity-40">{commTypeOptions.find(o => o.value === log.type)?.icon}</div>
-                          <div>
-                            <p className="text-xs font-bold leading-tight">{log.content}</p>
-                            {log.fileUrl && <img src={log.fileUrl} alt="log" className="mt-2 h-20 rounded-lg object-cover border border-black/10" />}
-                          </div>
+                          <p className="text-[11px] font-bold leading-tight">{log.content}</p>
                         </div>
-                        <span className="text-[9px] font-mono opacity-20 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <span className="text-[8px] font-mono opacity-20 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
                       </div>
                     ))}
                   </div>
                 )}
             </div>
 
-            {/* 3. Substance Sweet Spot Analysis */}
-            <div className={`p-8 rounded-[2.5rem] border fadeText ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
-               <div className="flex items-center gap-2 mb-6">
-                 <Target className="text-blue-500" size={20} />
-                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Substance Sweet Spot</h4>
-               </div>
-               <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false}/>
-                      <XAxis type="number" dataKey="x" hide domain={[0,10]}/>
-                      <YAxis type="number" dataKey="y" hide domain={[0,10]}/>
-                      <Scatter data={[{x:5,y:5}]} fill="#3b82f6" shape="circle" />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-               </div>
-            </div>
+            {/* 3. CONDENSED BOTTOM SECTION: Charts & Take Off */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                {/* Condensed Sweet Spot */}
+                <div className={`p-4 rounded-[1.5rem] border fadeText h-40 ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
+                  <h4 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-2">Sweet Spot</h4>
+                  <div className="h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ScatterChart margin={{ top: 5, right: 5, bottom: 5, left: -25 }}><XAxis type="number" dataKey="x" hide domain={[0,10]}/><YAxis type="number" dataKey="y" hide domain={[0,10]}/><Scatter data={[{x:5,y:5}]} fill="#3b82f6" shape="circle" /></ScatterChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
 
-            {/* 4. TAKE OFF Button (BETWEEN ENGINE AND SETTING) */}
-            <div className="clearElement">
-              <button 
-                onClick={isInFlight ? handleTouchDown : handleTakeOff}
-                className={`w-full py-10 rounded-[3rem] font-black text-3xl uppercase tracking-[0.4em] transition-all duration-500 shadow-2xl flex items-center justify-center gap-4 ${
-                  isInFlight ? 'bg-red-600 text-white animate-pulse shadow-[0_0_50px_rgba(220,38,38,0.3)]' : 'bg-blue-600 text-white hover:scale-[1.02] active:scale-95'
-                }`}
-              >
-                {isInFlight ? <><PowerOff size={32} /> TOUCH DOWN</> : <><Rocket size={32} /> TAKE OFF</>}
-              </button>
-            </div>
+                {/* Take Off Clear Element */}
+                <div className="clearElement">
+                  <button 
+                    onClick={isInFlight ? handleTouchDown : handleTakeOff}
+                    className={`w-full py-8 rounded-[2rem] font-black text-xl uppercase tracking-[0.3em] transition-all duration-500 shadow-xl flex items-center justify-center gap-3 ${
+                      isInFlight ? 'bg-red-600 text-white animate-pulse shadow-[0_0_40px_rgba(220,38,38,0.3)]' : 'bg-blue-600 text-white hover:scale-[1.02] active:scale-95'
+                    }`}
+                  >
+                    {isInFlight ? <><PowerOff size={24} /> TOUCH DOWN</> : <><Rocket size={24} /> TAKE OFF</>}
+                  </button>
+                </div>
 
-            {/* 5. Setting Weighting */}
-            <div className={`p-8 rounded-[2.5rem] border fadeText ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
-               <div className="flex items-center gap-2 mb-6">
-                 <Map className="text-green-500" size={20} />
-                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Setting Weighting</h4>
-               </div>
-               <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[{n:'Set',v:4},{n:'Setting',v:7}]}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1}/>
-                      <XAxis dataKey="n" hide />
-                      <YAxis hide domain={[0,10]} />
-                      <Bar dataKey="v" radius={[8,8,0,0]}>
-                        <Cell fill="#10b981" /><Cell fill="#3b82f6" />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-               </div>
+                {/* Condensed Setting Weighting */}
+                <div className={`p-4 rounded-[1.5rem] border fadeText h-40 ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
+                  <h4 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-2">Weighting</h4>
+                  <div className="h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={[{n:'S',v:4},{n:'E',v:7}]}><XAxis dataKey="n" hide /><YAxis hide domain={[0,10]} /><Bar dataKey="v" radius={[4,4,0,0]}><Cell fill="#10b981" /><Cell fill="#3b82f6" /></Bar></BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
             </div>
           </div>
         )}
 
-        {/* --- POST-FLIGHT PHASES --- */}
+        {/* --- STEP 7: EXPERIENTIAL DEBRIEF --- */}
         {step === 7 && (
            <div className="space-y-8 animate-fadeIn">
               <div className="flex items-center gap-3 mb-2">
@@ -507,59 +627,94 @@ export const LogFlight: React.FC = () => {
            </div>
         )}
 
+        {/* --- STEP 8: FURTHER SUBSTANCES --- */}
         {step === 8 && (
           <div className="space-y-8 animate-fadeIn">
             <h3 className="text-xs font-black uppercase opacity-40 tracking-widest">Further Substances Used?</h3>
-            <InputRange label="Final Effective Dose (Total Units)" value={phaseA.dosage} onChange={(v:number) => setPhaseA({...phaseA, dosage:v})} />
+            <InputRange label="Final Effective Dose" value={phaseA.dosage} onChange={(v:number) => setPhaseA({...phaseA, dosage:v})} minLabel="Baseline" maxLabel="Peak Adjust" />
             <button onClick={() => setStep(9)} className="w-full py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black uppercase tracking-widest hover:scale-[1.01] transition-all">Verify Final State</button>
           </div>
         )}
 
+        {/* --- STEP 9: INTERNAL STATE (POST-FLIGHT) --- */}
         {step === 9 && (
-          <div className="space-y-6 animate-fadeIn">
-            <h3 className="text-xs font-black uppercase opacity-40 tracking-widest">Current Internal State</h3>
-            <InputRange label="Mood" value={postMood} onChange={setPostMood} />
-            <InputRange label="Well-Being" value={postWellBeing} onChange={setPostWellBeing} />
-            <InputRange label="Attention" value={postAttention} onChange={setPostAttention} />
+          <div className="space-y-4 animate-fadeIn">
+            <h3 className="text-xs font-black uppercase opacity-40 tracking-widest mb-6">Current Internal State</h3>
+            <InputRange 
+              label="Mood" 
+              value={postMood} 
+              onChange={setPostMood} 
+              minLabel="Flat / Depressed" 
+              maxLabel="Elevated / Euphoric" 
+            />
+            <InputRange 
+              label="Well-Being" 
+              value={postWellBeing} 
+              onChange={setPostWellBeing} 
+              minLabel="Systemic Malaise" 
+              maxLabel="Flourishing State"
+            />
+            <InputRange 
+              label="System Stress" 
+              value={postStress} 
+              onChange={setPostStress} 
+              minLabel="Calm / Ease" 
+              maxLabel="Extreme / Tense"
+            />
+            <InputRange 
+              label="Life Responsibilities" 
+              value={postResponsibilities} 
+              onChange={setPostResponsibilities} 
+              minLabel="Clear / Free" 
+              maxLabel="Burdened / Heavy"
+            />
             <button onClick={() => setStep(10)} className="w-full py-6 bg-black text-white dark:bg-white dark:text-black rounded-3xl font-black uppercase tracking-widest hover:scale-[1.01] transition-all">Run Final Analysis</button>
           </div>
         )}
 
-        {/* --- STEP 10: SECOND SYSTEM STATUS PATTERN RECOGNITION --- */}
+        {/* --- STEP 10: SECOND SYSTEM STATUS PATTERN RECOGNITION (FINAL) --- */}
         {step === 10 && (
-          <div className="space-y-8 animate-fadeIn">
-            <section className={`p-8 rounded-[2.5rem] border-2 border-blue-600/20 bg-blue-600/5`}>
-               <div className="flex items-center gap-3 mb-4">
-                  <Brain className="text-blue-600" />
-                  <h3 className="text-xl font-black uppercase tracking-tight">Pattern Recognition Engine</h3>
+          <div className="space-y-6 animate-fadeIn">
+            <section className={`p-6 rounded-[2rem] border-2 border-blue-600/20 bg-blue-600/5`}>
+               <div className="flex items-center gap-3 mb-3">
+                  <Brain className="text-blue-600" size={20} />
+                  <h3 className="text-lg font-black uppercase tracking-tight">Final Pattern Recognition Engine</h3>
                </div>
-               <div className="min-h-[60px]">
-                  {loadingInsights ? <Loader2 className="animate-spin text-blue-500" /> : <p className="italic font-medium opacity-80">{insights}</p>}
+               <div className="min-h-[40px]">
+                  {loadingInsights ? <Loader2 className="animate-spin text-blue-500" size={16} /> : <p className="italic font-medium opacity-80 text-sm">{insights}</p>}
                </div>
             </section>
 
-            {/* FILE TO BLACK BOX (BETWEEN ENGINE AND SETTING) */}
-            <button 
-              onClick={handleSubmit} 
-              className="w-full py-10 bg-blue-600 text-white rounded-[3rem] font-black text-3xl uppercase tracking-[0.4em] shadow-[0_40px_100px_rgba(37,99,235,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4"
-            >
-               <Save size={32} /> FILE TO BLACK BOX
-            </button>
-
-            <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
-               <div className="flex items-center gap-2 mb-6">
-                 <Map className="text-green-500" size={20} />
-                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40">Final Setting Weighting</h4>
+            {/* CONDENSED FINAL SUMMARY UI */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+               <div className="space-y-6">
+                 <button 
+                  onClick={handleSubmit} 
+                  className="w-full py-10 bg-blue-600 text-white rounded-[2.5rem] font-black text-2xl uppercase tracking-[0.4em] shadow-[0_30px_80px_rgba(37,99,235,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4"
+                 >
+                   <Save size={28} /> FILE TO BLACK BOX
+                 </button>
+                 
+                 <div className={`p-6 rounded-[2rem] border bg-black/5 dark:bg-white/5 italic opacity-60 text-xs leading-relaxed`}>
+                   Final session telemetry captured and calibrated against baseline. Integration phase now active.
+                 </div>
                </div>
-               <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={[{n:'Initial',v:5},{n:'Final',v:8}]}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1}/>
-                      <XAxis dataKey="n" hide />
-                      <YAxis hide domain={[0,10]} />
-                      <Bar dataKey="v" radius={[8,8,0,0]} fill="#10b981" />
-                    </BarChart>
-                  </ResponsiveContainer>
+
+               <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-black/20 border-zinc-800' : 'bg-white border-gray-100'}`}>
+                 <div className="flex items-center gap-2 mb-4">
+                   <Map className="text-green-500" size={16} />
+                   <h4 className="text-[9px] font-black uppercase tracking-widest opacity-40">Trajectory Weighting</h4>
+                 </div>
+                 <div className="h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={[{n:'Initial',v:5},{n:'Final',v:postWellBeing}]}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1}/>
+                        <XAxis dataKey="n" hide />
+                        <YAxis hide domain={[0,10]} />
+                        <Bar dataKey="v" radius={[6,6,0,0]} fill="#10b981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                 </div>
                </div>
             </div>
           </div>
