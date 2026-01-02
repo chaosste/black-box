@@ -1,16 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { Substance, SocialEnvironment, PhysicalEnvironment, FlightSession } from '../types';
-import { ChevronRight, Save, HelpCircle, PencilLine, Trash2, ArrowLeft, Brain, Loader2, Sparkles, ExternalLink } from 'lucide-react';
+import { ChevronRight, Save, HelpCircle, PencilLine, Trash2, ArrowLeft, Tag, X, Brain, Loader2, Sparkles, ExternalLink } from 'lucide-react';
 import { ASSETS } from '../constants';
 import { getForecastAnalytics } from '../services/geminiService';
-import { InputRange } from '../components/ui/InputRange';
-import { TagInput } from '../components/ui/TagInput';
 
 export const NewSession: React.FC = () => {
   const { addSession, draft, setDraft, darkMode, activeProfile } = useStore();
   const [step, setStep] = useState(0); 
   const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [forecast, setForecast] = useState<any>(null);
   const [showAIPopup, setShowAIPopup] = useState(false);
@@ -39,7 +39,7 @@ export const NewSession: React.FC = () => {
 
   useEffect(() => {
     setDraft({ phaseA, tags, lastSaved: new Date().toISOString() });
-  }, [phaseA, tags, setDraft]);
+  }, [phaseA, tags]);
 
   const handleGenerateForecast = async () => {
     setLoadingForecast(true);
@@ -73,6 +73,16 @@ export const NewSession: React.FC = () => {
     window.location.hash = '#dashboard';
   };
 
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTag.trim()) return;
+    if (tags.includes(newTag.trim())) return;
+    setTags([...tags, newTag.trim()]);
+    setNewTag('');
+  };
+
+  const removeTag = (t: string) => setTags(tags.filter(tag => tag !== t));
+
   const getSliderFeedback = (label: string, value: number) => {
     const l = label.toLowerCase();
     if (l.includes("mood")) {
@@ -105,6 +115,37 @@ export const NewSession: React.FC = () => {
     }
     return `Level ${value}`;
   };
+
+  const InputRange = ({ label, value, min = 1, max = 10, onChange, minLabel, maxLabel }: any) => (
+    <div className="mb-10 group">
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <label className="text-[10px] font-black uppercase tracking-widest opacity-40 block mb-1">
+            {label}
+          </label>
+          <p className="text-sm font-bold text-blue-600 dark:text-blue-400 tracking-tight transition-all">
+            {getSliderFeedback(label, value)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+           <span className={`text-4xl font-mono font-black tabular-nums transition-colors ${value > 7 ? 'text-blue-600' : value < 4 ? 'text-amber-500' : (darkMode ? 'text-white' : 'text-black')}`}>{value}</span>
+           <span className="text-[10px] font-bold opacity-20">/ 10</span>
+        </div>
+      </div>
+      <div className="relative h-4 flex items-center">
+        <input 
+          type="range" min={min} max={max} step="1" 
+          value={value} 
+          onChange={(e) => onChange(parseInt(e.target.value))}
+          className="w-full h-3 bg-gray-200 dark:bg-zinc-800 rounded-full appearance-none cursor-pointer accent-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+        />
+      </div>
+      <div className="flex justify-between mt-2 px-1">
+         <span className="text-[9px] font-black uppercase tracking-tighter opacity-30">{minLabel}</span>
+         <span className="text-[9px] font-black uppercase tracking-tighter opacity-30">{maxLabel}</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto py-8 relative">
@@ -168,13 +209,27 @@ export const NewSession: React.FC = () => {
               />
             </div>
 
-            <TagInput 
-                tags={tags} 
-                onChange={setTags} 
-                label="Classification Tags" 
-                placeholder="E.G. SOLO, HIGH-DOSE, NATURE..." 
-                darkMode={darkMode}
-            />
+            <div className="space-y-4">
+               <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Classification Tags</label>
+               <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map(t => (
+                    <span key={t} className="px-3 py-1 bg-blue-500/10 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Tag size={10} /> {t}
+                      <button onClick={() => removeTag(t)} className="hover:text-red-500"><X size={12}/></button>
+                    </span>
+                  ))}
+               </div>
+               <form onSubmit={handleAddTag} className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="E.G. SOLO, HIGH-DOSE, NATURE..."
+                    className={`flex-1 p-4 rounded-xl border-2 font-black uppercase text-xs tracking-widest ${darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50 border-gray-200'}`}
+                    value={newTag}
+                    onChange={e => setNewTag(e.target.value)}
+                  />
+                  <button type="submit" className="px-6 bg-blue-600 text-white rounded-xl font-black uppercase text-xs tracking-widest">Add</button>
+               </form>
+            </div>
 
             <button 
               onClick={() => setStep(1)} 
@@ -231,8 +286,7 @@ export const NewSession: React.FC = () => {
               value={phaseA.mood} 
               onChange={(v: number) => setPhaseA({...phaseA, mood: v})} 
               minLabel="Flat / Depressed" 
-              maxLabel="Elevated / Euphoric"
-              feedback={getSliderFeedback("mood", phaseA.mood)}
+              maxLabel="Elevated / Euphoric" 
             />
             <InputRange 
               label="Mindfulness Level" 
@@ -240,7 +294,6 @@ export const NewSession: React.FC = () => {
               onChange={(v: number) => setPhaseA({...phaseA, mindfulness: v})} 
               minLabel="Scattered / Auto" 
               maxLabel="Centered / Present"
-              feedback={getSliderFeedback("mindfulness", phaseA.mindfulness)}
             />
             <InputRange 
               label="System Stress" 
@@ -248,7 +301,6 @@ export const NewSession: React.FC = () => {
               onChange={(v: number) => setPhaseA({...phaseA, stress: v})} 
               minLabel="Calm / Ease" 
               maxLabel="Extreme / Tense"
-              feedback={getSliderFeedback("stress", phaseA.stress)}
             />
             <InputRange 
               label="Life Responsibilities" 
@@ -256,7 +308,6 @@ export const NewSession: React.FC = () => {
               onChange={(v: number) => setPhaseA({...phaseA, responsibilities: v})} 
               minLabel="Clear / Free" 
               maxLabel="Burdened / Heavy"
-              feedback={getSliderFeedback("responsibilities", phaseA.responsibilities)}
             />
             
             <div className="flex gap-4 pt-6">

@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Baseline } from '../types';
 import { Save, History, Activity, TrendingUp, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { InputRange } from '../components/ui/InputRange';
 
 export const Baselines: React.FC = () => {
   const { activeProfile, addBaseline, darkMode } = useStore();
@@ -21,6 +21,21 @@ export const Baselines: React.FC = () => {
     addBaseline({ ...form, timestamp: new Date().toISOString() });
     alert('DataPoint entry captured. Neural agent state synchronized.');
   };
+
+  const InputRange = ({ label, value, onChange }: any) => (
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-sm font-bold uppercase tracking-widest opacity-60">{label}</label>
+        <span className="text-xl font-bold font-mono text-blue-500">{value}</span>
+      </div>
+      <input 
+        type="range" min="1" max="10" 
+        value={value} 
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+      />
+    </div>
+  );
 
   const chartData = baselines.map(b => ({
     date: new Date(b.timestamp).toLocaleDateString(),

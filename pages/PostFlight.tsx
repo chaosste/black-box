@@ -1,15 +1,15 @@
+
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Substance, SocialEnvironment, PhysicalEnvironment, FlightSession } from '../types';
-import { ChevronRight, Save, Trash2, ArrowLeft, Sparkles } from 'lucide-react';
+import { ChevronRight, Save, PencilLine, Trash2, ArrowLeft, Tag, X, Sparkles } from 'lucide-react';
 import { ASSETS } from '../constants';
-import { InputRange } from '../components/ui/InputRange';
-import { TagInput } from '../components/ui/TagInput';
 
 export const PostFlight: React.FC = () => {
   const { addSession, darkMode } = useStore();
   const [step, setStep] = useState(0);
   const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
   
   const [data, setData] = useState({
     substance: Substance.LSD,
@@ -59,6 +59,33 @@ export const PostFlight: React.FC = () => {
     alert('Retrospective experience committed to the research ledger.');
     window.location.hash = '#dashboard';
   };
+
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTag.trim()) return;
+    if (tags.includes(newTag.trim())) return;
+    setTags([...tags, newTag.trim()]);
+    setNewTag('');
+  };
+
+  const removeTag = (t: string) => setTags(tags.filter(tag => tag !== t));
+
+  const InputRange = ({ label, value, min = 1, max = 10, onChange }: any) => (
+    <div className="mb-6">
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-sm font-bold uppercase tracking-widest opacity-60">
+          {label}
+        </label>
+        <span className="text-xl font-mono font-bold text-blue-600">{value}</span>
+      </div>
+      <input 
+        type="range" min={min} max={max} step="1" 
+        value={value} 
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full h-2 bg-gray-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
+      />
+    </div>
+  );
 
   return (
     <div className="max-w-3xl mx-auto py-8">
@@ -115,13 +142,27 @@ export const PostFlight: React.FC = () => {
               />
             </div>
 
-            <TagInput 
-              tags={tags} 
-              onChange={setTags} 
-              label="Classification Tags - After" 
-              placeholder="ADD RETROSPECTIVE TAG..." 
-              darkMode={darkMode} 
-            />
+            <div className="space-y-4">
+               <label className="text-[10px] font-black uppercase tracking-widest opacity-40">Classification Tags - After</label>
+               <div className="flex flex-wrap gap-2 mb-2">
+                  {tags.map(t => (
+                    <span key={t} className="px-3 py-1 bg-blue-500/10 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                      <Tag size={10} /> {t}
+                      <button onClick={() => removeTag(t)} className="hover:text-red-500"><X size={12}/></button>
+                    </span>
+                  ))}
+               </div>
+               <form onSubmit={handleAddTag} className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="ADD RETROSPECTIVE TAG..."
+                    className={`flex-1 p-4 rounded-xl border-2 font-black uppercase text-xs tracking-widest ${darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50 border-gray-200'}`}
+                    value={newTag}
+                    onChange={e => setNewTag(e.target.value)}
+                  />
+                  <button type="submit" className="px-6 bg-blue-600 text-white rounded-xl font-black uppercase text-xs tracking-widest">Add</button>
+               </form>
+            </div>
 
             <button 
               onClick={() => setStep(1)} 
