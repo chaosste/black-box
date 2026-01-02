@@ -102,7 +102,7 @@ export const Dashboard: React.FC = () => {
               Track your experiments with Black Box, the psychedelic quantified self platform for n=1 and groups of subjects.
             </p>
             <button 
-              onClick={() => window.location.hash = '#new-session'}
+              onClick={() => window.location.hash = '#log-flight'}
               className="px-10 py-5 bg-black text-white dark:bg-white dark:text-black rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center gap-3 shadow-2xl"
             >
               Initiate First Flight <PlusCircle size={24} />

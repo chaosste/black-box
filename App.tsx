@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { StoreProvider, useStore } from './store/useStore';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
-import { NewSession } from './pages/NewSession';
-import { PostFlight } from './pages/PostFlight';
+import { LogFlight } from './pages/LogFlight';
 import { Profiles } from './pages/Profiles';
 import { HarmReduction } from './pages/HarmReduction';
 import { Questionnaires } from './pages/Questionnaires';
-import { History } from './pages/History';
+import { FlightLogs } from './pages/FlightLogs';
 import { SessionDetail } from './pages/SessionDetail';
 import { Baselines } from './pages/Baselines';
 import { ASSETS } from './constants';
@@ -92,17 +91,16 @@ const Navigation: React.FC = () => {
   const renderContent = () => {
     if (activeTab.startsWith('session/')) {
       const sessionId = activeTab.split('/')[1];
-      return <SessionDetail sessionId={sessionId} onBack={() => setActiveTab('history')} />;
+      return <SessionDetail sessionId={sessionId} onBack={() => setActiveTab('flight-logs')} />;
     }
 
     switch (activeTab) {
       case 'dashboard': return <Dashboard />;
       case 'profiles': return <Profiles />;
       case 'profile-record': return <Profiles forceRecordView={true} />;
-      case 'history': return <History onSelectSession={(id) => setActiveTab(`session/${id}`)} />;
+      case 'flight-logs': return <FlightLogs onSelectSession={(id) => setActiveTab(`session/${id}`)} />;
       case 'baselines': return <Baselines />;
-      case 'new-session': return <NewSession />;
-      case 'post-flight': return <PostFlight />;
+      case 'log-flight': return <LogFlight />;
       case 'questionnaires': return <Questionnaires />;
       case 'harm-reduction': return <HarmReduction />;
       default: return <Dashboard />;

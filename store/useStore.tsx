@@ -33,7 +33,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('flight_recorder_dark') === 'true';
+    const saved = localStorage.getItem('flight_recorder_dark');
+    // Default to true (Dark Mode) if not set
+    return saved === null ? true : saved === 'true';
   });
 
   useEffect(() => {
@@ -44,6 +46,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     localStorage.setItem('flight_recorder_dark', darkMode.toString());
+    if (darkMode) {
+      document.body.classList.add('dark');
+      document.body.classList.remove('bg-gray-50');
+      document.body.classList.add('bg-black');
+    } else {
+      document.body.classList.remove('dark');
+      document.body.classList.remove('bg-black');
+      document.body.classList.add('bg-gray-50');
+    }
   }, [darkMode]);
 
   useEffect(() => {

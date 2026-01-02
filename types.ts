@@ -34,9 +34,14 @@ export interface SessionPhaseA {
   timestamp: string;
 }
 
+export type LogEntryType = 'text' | 'audio' | 'file' | 'Visual Observation' | 'Somatic Sensation' | 'Cognitive Shift';
+
 export interface LogEntry {
   timestamp: string;
   content: string;
+  type: LogEntryType;
+  fileUrl?: string;
+  fileName?: string;
 }
 
 export interface SessionPhaseC {
@@ -99,6 +104,7 @@ export interface FlightSession {
   tags?: string[];
   isCompleted?: boolean;
   debriefText?: string;
+  notes?: string;
 }
 
 export interface User {

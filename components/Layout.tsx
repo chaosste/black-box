@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { ASSETS } from '../constants';
@@ -16,10 +17,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'new-session', label: 'New Flight', icon: PlusCircle },
-    { id: 'post-flight', label: 'Post Flight', icon: CheckSquare },
+    { id: 'log-flight', label: 'Log Flight', icon: PlusCircle },
+    { id: 'flight-logs', label: 'Flight Logs', icon: History },
     { id: 'questionnaires', label: 'Assessments', icon: FileText },
-    { id: 'history', label: 'Experiments', icon: History },
     { id: 'profiles', label: 'Subjects', icon: UserCircle },
     { id: 'baselines', label: 'DataPoint Entry', icon: Activity },
     { id: 'harm-reduction', label: 'Safety', icon: ShieldAlert },
@@ -106,7 +106,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                newpsychonaut.com
             </a>
             
-            {/* Neurophenom Banner - Moved to Footer and Reduced size by 30% (h-12 -> h-8.4, h-14 -> h-9.8) */}
             <a 
               href="https://neurophenom-ai-572556903588.us-west1.run.app/" 
               target="_blank" 
@@ -122,7 +121,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
           </footer>
         </div>
 
-        {/* Buy Me A Coffee - Bottom Right */}
         <a 
           href="https://buymeacoffee.com/stevebeale" 
           target="_blank" 
