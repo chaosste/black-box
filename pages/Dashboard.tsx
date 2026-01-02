@@ -132,6 +132,29 @@ export const Dashboard: React.FC = () => {
             <img src={sidebarIcon} alt="bg" className="w-full h-full object-contain scale-150 rotate-12" />
           </div>
         </section>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className={`p-8 rounded-[2.5rem] border border-dashed ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
+               <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <Zap className="text-blue-500" size={24} />
+               </div>
+               <h3 className="font-bold mb-2 uppercase text-xs tracking-widest">Quantifiable Set</h3>
+               <p className="text-xs opacity-60 leading-relaxed">Record mood, stress, and self-esteem as weighted causal inputs.</p>
+            </div>
+            <div className={`p-8 rounded-[2.5rem] ${darkMode ? 'bg-zinc-900' : 'bg-white border border-gray-100 shadow-xl'}`}>
+               <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <Map className="text-green-500" size={24} />
+               </div>
+               <h3 className="font-bold mb-2 uppercase text-xs tracking-widest">Observed Setting</h3>
+               <p className="text-xs opacity-60 leading-relaxed">Analyze environment and social dynamics impact.</p>
+            </div>
+            <div className={`p-8 rounded-[2.5rem] border border-dashed ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
+               <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                 <Activity className="text-amber-500" size={24} />
+               </div>
+               <h3 className="font-bold mb-2 uppercase text-xs tracking-widest">Temporal Outcomes</h3>
+               <p className="text-xs opacity-60 leading-relaxed">Measure trajectory at 1h, 24h, and 7d intervals.</p>
+            </div>
+        </div>
       </div>
     );
   }

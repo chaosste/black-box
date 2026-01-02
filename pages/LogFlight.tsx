@@ -51,6 +51,8 @@ export const LogFlight: React.FC = () => {
     timestamp: new Date().toISOString()
   });
 
+  const tagSuggestions = ["THERAPEUTIC", "NATURE", "CREATIVE", "SOLO", "MEDITATIVE"];
+
   useEffect(() => {
     if (draft) {
       setPhaseA(prev => ({ ...prev, ...draft.phaseA }));
@@ -218,11 +220,10 @@ export const LogFlight: React.FC = () => {
     { label: 'Text', value: 'text', icon: <FileText size={14}/> },
   ];
 
-  const suggestedTags = ['SOLO', 'NATURE', 'THERAPEUTIC', 'MUSIC', 'CREATIVE'];
-
-  const addSuggestedTag = (tag: string) => {
-    if (!tags.includes(tag)) {
-      setTags([...tags, tag]);
+  const handleAddTag = (tag: string) => {
+    const trimmed = tag.trim().toUpperCase();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
     }
   };
 
@@ -242,17 +243,19 @@ export const LogFlight: React.FC = () => {
         }
         @keyframes activePulse {
            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37,99,235,0.7); }
-           70% { transform: scale(1.15); box-shadow: 0 0 0 15px rgba(37,99,235,0); }
+           70% { transform: scale(1.2); box-shadow: 0 0 0 15px rgba(37,99,235,0); }
            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37,99,235,0); }
         }
         .step-active {
            animation: activePulse 2s infinite ease-in-out;
            z-index: 10;
-           background: linear-gradient(135deg, #2563eb, #60a5fa);
-           border: 2px solid white;
+           background: linear-gradient(135deg, #2563eb, #3b82f6);
+           border-color: white !important;
         }
-        .progress-line {
-           background: linear-gradient(to right, #2563eb, #60a5fa);
+        .step-completed {
+           background-color: #10b981 !important;
+           border-color: #10b981 !important;
+           color: white !important;
         }
       `}</style>
       
@@ -263,14 +266,14 @@ export const LogFlight: React.FC = () => {
           const isPast = step > s;
           return (
             <div key={i} className="flex items-center flex-1 last:flex-none relative">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-[11px] font-black transition-all duration-500 relative ${
+              <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-[12px] font-black transition-all duration-500 relative ${
                 isActive 
-                  ? 'text-white shadow-[0_0_30px_rgba(37,99,235,0.5)] step-active scale-110' 
+                  ? 'text-white shadow-[0_0_30px_rgba(37,99,235,0.6)] step-active' 
                   : isPast 
-                    ? 'bg-blue-500 text-white opacity-60' 
-                    : (darkMode ? 'bg-zinc-900 text-zinc-700' : 'bg-gray-100 text-gray-300')
+                    ? 'step-completed' 
+                    : (darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-700' : 'bg-gray-100 border-gray-200 text-gray-300')
               }`}>
-                {s === 5 ? <Rocket size={18} /> : s === 10 ? <ShieldCheck size={18} /> : i + 1}
+                {isPast ? <ShieldCheck size={18} /> : (s === 5 ? <Rocket size={18} /> : s === 10 ? <Activity size={18} /> : i + 1)}
                 {isActive && (
                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-black uppercase tracking-[0.2em] text-blue-500 animate-pulse">
                       Phase {i+1}
@@ -278,7 +281,7 @@ export const LogFlight: React.FC = () => {
                 )}
               </div>
               {i < 9 && (
-                <div className={`h-[3px] flex-1 mx-2 rounded-full transition-all duration-700 ${isPast ? 'progress-line' : (darkMode ? 'bg-zinc-800' : 'bg-gray-200')}`} />
+                <div className={`h-[2px] flex-1 mx-2 transition-all duration-700 ${isPast ? 'bg-green-500' : (darkMode ? 'bg-zinc-800' : 'bg-gray-200')}`} />
               )}
             </div>
           );
@@ -322,7 +325,7 @@ export const LogFlight: React.FC = () => {
           <div className="space-y-8 animate-fadeIn">
             <textarea
               className={`w-full p-8 rounded-[2rem] border-2 outline-none resize-none h-48 transition-all font-medium text-lg ${
-                darkMode ? 'bg-black border-zinc-800' : 'bg-gray-50 border-gray-200 focus:border-black'
+                darkMode ? 'bg-black border-zinc-800 focus:border-blue-500' : 'bg-gray-50 border-gray-200 focus:border-black'
               }`}
               placeholder="What is your intention for this flight?"
               value={phaseA.intentionsText}
@@ -339,19 +342,21 @@ export const LogFlight: React.FC = () => {
                     </span>
                   ))}
                </div>
+               
                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-20 mr-2 flex items-center">Suggestions:</span>
-                  {suggestedTags.map(st => (
+                  <span className="text-[10px] font-bold opacity-30 uppercase tracking-widest self-center mr-2">Suggestions:</span>
+                  {tagSuggestions.map(s => (
                     <button 
-                      key={st} 
-                      onClick={() => addSuggestedTag(st)}
-                      className="px-3 py-1.5 text-[9px] font-black border border-gray-200 dark:border-zinc-800 rounded-lg hover:bg-blue-600 hover:text-white transition-all transform hover:scale-105 active:scale-95"
+                      key={s} 
+                      onClick={() => handleAddTag(s)}
+                      className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-colors ${darkMode ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-400' : 'border-gray-200 hover:bg-gray-100 text-gray-500'}`}
                     >
-                      {st}
+                      {s}
                     </button>
                   ))}
                </div>
-               <form onSubmit={(e) => { e.preventDefault(); if(newTag.trim()){ setTags([...tags, newTag.trim()]); setNewTag(''); } }} className="flex gap-2">
+
+               <form onSubmit={(e) => { e.preventDefault(); handleAddTag(newTag); setNewTag(''); }} className="flex gap-2">
                   <input 
                     type="text" 
                     placeholder="ADD CUSTOM TAG..."
@@ -359,7 +364,7 @@ export const LogFlight: React.FC = () => {
                     value={newTag}
                     onChange={e => setNewTag(e.target.value)}
                   />
-                  <button type="submit" className="px-6 bg-blue-600 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-blue-700 shadow-lg transition-colors">Add</button>
+                  <button type="submit" className="px-6 bg-blue-600 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-colors shadow-lg">Add</button>
                </form>
             </div>
 

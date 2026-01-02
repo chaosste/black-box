@@ -1,11 +1,11 @@
 
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
-import { Download, ChevronRight, Calendar, FlaskConical, FileBarChart2, Copy, Tag, Sparkles, Filter, X, Search, ArrowUpAZ, ArrowDownZA, CalendarDays } from 'lucide-react';
+import { Download, ChevronRight, Calendar, FlaskConical, FileBarChart2, Copy, Tag, Sparkles, Filter, X, Search, ArrowUpAZ, ArrowDownZA, CalendarDays, Plus } from 'lucide-react';
 import { FlightSession, Substance } from '../types';
 
 export const FlightLogs: React.FC<{ onSelectSession: (id: string) => void }> = ({ onSelectSession }) => {
-  const { activeProfile, darkMode, setDraft } = useStore();
+  const { activeProfile, darkMode, setDraft, updateSession } = useStore();
   const sessions = activeProfile?.sessions || [];
 
   // Filtering state
@@ -15,6 +15,8 @@ export const FlightLogs: React.FC<{ onSelectSession: (id: string) => void }> = (
   const [endDate, setEndDate] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
+  const [quickTagSessionId, setQuickTagSessionId] = useState<string | null>(null);
+  const [quickTagValue, setQuickTagValue] = useState('');
 
   const filteredSessions = useMemo(() => {
     return sessions.filter(s => {
@@ -30,6 +32,17 @@ export const FlightLogs: React.FC<{ onSelectSession: (id: string) => void }> = (
       return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
     });
   }, [sessions, substanceFilter, tagFilter, startDate, endDate, sortOrder]);
+
+  const handleQuickTagSubmit = (e: React.FormEvent, sessionId: string, currentTags: string[]) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const trimmed = quickTagValue.trim().toUpperCase();
+    if (trimmed && !currentTags.includes(trimmed)) {
+      updateSession(sessionId, { tags: [...currentTags, trimmed] });
+    }
+    setQuickTagValue('');
+    setQuickTagSessionId(null);
+  };
 
   const exportToCSV = () => {
     if (!filteredSessions.length) return;
@@ -184,6 +197,8 @@ export const FlightLogs: React.FC<{ onSelectSession: (id: string) => void }> = (
         )}
         {filteredSessions.map(s => {
           const isRecent = s.id === mostRecentSessionId;
+          const isQuickTagActive = quickTagSessionId === s.id;
+
           return (
             <div
               key={s.id}
@@ -219,12 +234,37 @@ export const FlightLogs: React.FC<{ onSelectSession: (id: string) => void }> = (
                   {isRecent && <span className="ml-3 text-[10px] bg-blue-600 text-white px-3 py-1 rounded-full align-middle uppercase tracking-widest font-black shadow-lg">Latest Flight</span>}
                 </h3>
                 
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-6 min-h-[24px] items-center">
                   {s.tags?.map(tag => (
                     <span key={tag} className="px-3 py-1 bg-gray-100 dark:bg-zinc-800 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5 border border-black/5 dark:border-white/5">
                       <Tag size={10} className="opacity-40" /> {tag}
                     </span>
-                  )) || <span className="text-[9px] opacity-20 font-black uppercase tracking-widest">No Classifications</span>}
+                  ))}
+                  
+                  {isQuickTagActive ? (
+                    <form 
+                      onSubmit={(e) => handleQuickTagSubmit(e, s.id, s.tags || [])}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center animate-fadeIn"
+                    >
+                      <input 
+                        autoFocus
+                        type="text" 
+                        value={quickTagValue}
+                        onChange={(e) => setQuickTagValue(e.target.value)}
+                        className={`p-1 text-[10px] font-black uppercase border-b-2 outline-none w-20 ${darkMode ? 'bg-black border-blue-500' : 'bg-white border-blue-500'}`}
+                        placeholder="TAG..."
+                        onBlur={() => { if(!quickTagValue) setQuickTagSessionId(null); }}
+                      />
+                    </form>
+                  ) : (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setQuickTagSessionId(s.id); }}
+                      className="p-1 rounded bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  )}
                 </div>
 
                 <p className="opacity-60 mb-8 flex items-center gap-2 text-sm font-medium">
